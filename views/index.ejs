@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Start New Game</title>
+</head>
+<body>
+  <h1>🎯 Shooting Competition</h1>
+
+  <form id="gameForm" method="POST" action="/submit">
+    <input type="text" name="playerName" placeholder="Player Name" required><br><br>
+
+    <select name="gameType" id="gameType" required>
+      <option value="">Select Game</option>
+      <option value="airgun">Airgun</option>
+      <option value="archery">Archery</option>
+      <option value="blowgun">Blowgun</option>
+    </select><br><br>
+
+    <div id="scoreInputs"></div>
+
+    <input type="hidden" name="scoresArray" id="scoresArray">
+    <button type="submit">Submit</button>
+  </form>
+
+  <script>
+    const gameType = document.getElementById("gameType");
+    const scoreInputs = document.getElementById("scoreInputs");
+    const scoresArray = document.getElementById("scoresArray");
+
+    gameType.addEventListener("change", () => {
+      let count = 0;
+      if (gameType.value === "airgun") count = 5;
+      else if (gameType.value === "archery") count = 3;
+      else if (gameType.value === "blowgun") count = 8;
+
+      scoreInputs.innerHTML = "";
+      for (let i = 1; i <= count; i++) {
+        scoreInputs.innerHTML += `<input type="number" class="scoreField" placeholder="Shot ${i}" required><br>`;
+      }
+    });
+
+    document.getElementById("gameForm").addEventListener("submit", function (e) {
+      const fields = document.querySelectorAll(".scoreField");
+      const values = Array.from(fields).map(field => field.value || 0);
+      scoresArray.value = values.join(",");
+    });
+  </script>
+</body>
+</html>

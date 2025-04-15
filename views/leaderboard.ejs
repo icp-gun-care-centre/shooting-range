@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Leaderboard</title>
+  <style>
+    table { border-collapse: collapse; width: 100%; }
+    th, td { padding: 10px; border: 1px solid #ccc; }
+    h2 { margin-top: 40px; }
+    #popup {
+      display:none;
+      position:fixed;
+      top:50px;
+      left:50%;
+      transform:translateX(-50%);
+      background:#fff;
+      border:4px solid #4CAF50;
+      padding:25px;
+      z-index:9999;
+      border-radius:20px;
+      box-shadow:0 5px 25px rgba(0,0,0,0.4);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      font-family: Arial, sans-serif;
+      animation: fadeIn 0.5s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; top: 20px; }
+      to { opacity: 1; top: 50px; }
+    }
+  </style>
+</head>
+<body>
+  <h1>🏆 Leaderboard</h1>
+
+  <div id="leaderboardTables">
+    <% for (let type in scores) { %>
+      <section>
+        <h2><%= type.toUpperCase() %></h2>
+        <table>
+          <tr><th>Name</th><th>Total</th></tr>
+          <% scores[type].slice(0, 10).forEach(player => { %>
+            <tr><td><%= player.name %></td><td><%= player.total %></td></tr>
+          <% }) %>
+        </table>
+      </section>
+    <% } %>
+  </div>
+
+  <audio id="popupSound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3" preload="auto"></audio>
+  <div id="popup">
+    <h2 id="popupTitle"></h2>
+    <p id="popupMessage"></p>
+  </div>
+
+  <script>
+    function checkNewPlayer() {
+      fetch("/api/last-player")
+        .then(res => res.json())
+        .then(player => {
+          if (!player || !player.name) return;
+    
+          const title = player.success ? "🎉 Congratulations!" : "🙁 Try Again!";
+          const message = `${player.name}, your total is ${player.total}. ${player.success ? "You won 500 Rupees! 🥳" : "Better luck next time!"}`;
+    
+          document.getElementById("popupTitle").innerText = title;
+          document.getElementById("popupMessage").innerText = message;
+          document.getElementById("popup").style.display = "block";
+    
+          const sound = document.getElementById("popupSound");
+          if (sound) sound.play();
+    
+          setTimeout(() => {
+            document.getElementById("popup").style.display = "none";
+          }, 60000); // 5 mins
+        });
+    }
+    
+    function updateLeaderboard() {
+      fetch("/api/leaderboard")
+        .then(res => res.json())
+        .then(scores => {
+          const container = document.getElementById("leaderboardTables");
+          container.innerHTML = "";
+    
+          for (let gameType in scores) {
+            const section = document.createElement("section");
+            section.innerHTML = `
+              <h2>${gameType.toUpperCase()}</h2>
+              <table>
+                <tr><th>Name</th><th>Total</th></tr>
+                ${scores[gameType].slice(0, 10).map(p =>
+                  `<tr><td>${p.name}</td><td>${p.total}</td></tr>`).join("")}
+              </table>
+            `;
+            container.appendChild(section);
+          }
+        });
+    }
+    
+    setInterval(checkNewPlayer, 5000);
+    setInterval(updateLeaderboard, 5000);
+    </script>
+    
+</body>
+</html>
